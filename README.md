@@ -10,4 +10,5 @@ This program uses the league of Legends Api to collect played high elo games, st
 <h3>app.py:</h3>
 
 Creates a python window where the user can create two teams and calculate the winning team by executing the model on the selected data.
-![alt text](LeagueAi/application.png)
+![alt text](https://github.com/Bezes13/LeagueAi/blob/main/LeagueAI/application.png?raw=true)
+
