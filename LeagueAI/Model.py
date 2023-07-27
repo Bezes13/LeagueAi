@@ -92,7 +92,7 @@ def define_Model():
 
 
 model = define_Model()
-model.fit(team_data, labels, validation_data=(valid_team_data, valid_labels), epochs=10, batch_size=200, verbose=2)
+model.fit(team_data, labels, validation_data=(valid_team_data, valid_labels), epochs=100, batch_size=200, verbose=2)
 # Final evaluation of the model
 scores = model.evaluate(valid_team_data, valid_labels, verbose=0)
 print("CNN Error: %.2f%%" % (100-scores[1]*100))

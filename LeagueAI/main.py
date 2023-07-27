@@ -1,7 +1,7 @@
 import requests
 import csv
 import time
-api_key = "RGAPI-fdcb7d1c-1f16-4d95-b9e6-8fb60da77e64"
+api_key = "RGAPI-566bf67f-e145-454a-ac1e-4c8004debd51"
 offtime = 5
 
 def get_summoner_info(api_key, region, summoner_name):
@@ -45,7 +45,7 @@ def execute_request(base_url, header):
             data = response.json()
             return data
         else:
-            #print(f"Fehler bei der API-Anfrage. Status-Code: {response.status_code}")
+            print(f"Fehler bei der API-Anfrage. Status-Code: {response.status_code}")
             return None
 
     except requests.exceptions.RequestException as e:
@@ -99,7 +99,7 @@ def add_data(players, data):
             if not data.__contains__(matchID):
                 data[matchID] = entry
 
-        with open('matches.csv', 'w', newline='') as csvfile:
+        with open('valid.csv', 'w', newline='') as csvfile:
             # CSV-Schreibobjekt erstellen
             csv_writer = csv.writer(csvfile)
 
@@ -157,8 +157,8 @@ if __name__ == "__main__":
         print(summoner_info)
 
     data = {}
-    add_challenger_games(data)
-    add_master_games(data)
+    #add_challenger_games(data)
+    #add_master_games(data)
     add_grandmaster_games(data)
     with open('matches.csv', 'w', newline='') as csvfile:
         # CSV-Schreibobjekt erstellen
