@@ -1,46 +1,39 @@
 import requests
 import csv
 import time
+
 api_key = "RGAPI-566bf67f-e145-454a-ac1e-4c8004debd51"
-offtime = 5
+off_time = 5
+region = "euw1"
+regionMatch = "europe"
 
-def get_summoner_info(api_key, region, summoner_name):
+
+def get_summoner_info(summoner_name):
     base_url = f"https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/{summoner_name}"
-    headers = {
-        "X-Riot-Token": api_key
-    }
-    return execute_request(base_url, headers)
+    return execute_request(base_url)
 
 
-def get_matches(api_key, region, puuid):
-    base_url = f"https://{region}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids"
-    headers = {
-        "X-Riot-Token": api_key
-    }
-    return execute_request(base_url, headers)
+def get_matches(puuid):
+    base_url = f"https://{regionMatch}.api.riotgames.com/lol/match/v5/matches/by-puuid/{puuid}/ids"
+    return execute_request(base_url)
 
 
-def get_match(api_key, region, matchId):
-    base_url = f"https://{region}.api.riotgames.com/lol/match/v5/matches/{matchId}"
-    headers = {
-        "X-Riot-Token": api_key
-    }
-    return execute_request(base_url, headers)
+def get_match(match_id):
+    base_url = f"https://{regionMatch}.api.riotgames.com/lol/match/v5/matches/{match_id}"
+    return execute_request(base_url)
 
 
-def get_high_league(api_key, region, league):
+def get_high_league(league):
     base_url = f"https://{region}.api.riotgames.com/lol/league/v4/{league}/by-queue/RANKED_SOLO_5x5"
-    headers = {
+    return execute_request(base_url)
+
+
+def execute_request(base_url):
+    header = {
         "X-Riot-Token": api_key
     }
-    return execute_request(base_url, headers)
-
-
-def execute_request(base_url, header):
     try:
         response = requests.get(base_url, headers=header)
-
-        # Überprüfen, ob die Anfrage erfolgreich war (Status-Code 200)
         if response.status_code == 200:
             data = response.json()
             return data
@@ -60,20 +53,20 @@ def add_data(players, data):
         print(str(player_index) + "/" + str(count))
         player_index += 1
         name = player['summonerName']
-        info = get_summoner_info(api_key, region, name)
+        info = get_summoner_info(name)
         while info is None:
-            time.sleep(offtime)
-            info = get_summoner_info(api_key, region, name)
-        matches = get_matches(api_key, regionMatch, info['puuid'])
+            time.sleep(off_time)
+            info = get_summoner_info(name)
+        matches = get_matches(info['puuid'])
         while matches is None:
-            time.sleep(offtime)
-            matches = get_matches(api_key, regionMatch, info['puuid'])
+            time.sleep(off_time)
+            matches = get_matches(info['puuid'])
         for matchID in matches:
             entry = []
-            match = get_match(api_key, regionMatch, matchID)
+            match = get_match(matchID)
             while match is None:
-                time.sleep(offtime)
-                match = get_match(api_key, regionMatch, matchID)
+                time.sleep(off_time)
+                match = get_match(matchID)
             mode = match['info']['gameMode']
             if not mode == 'CLASSIC':
                 continue
@@ -92,41 +85,35 @@ def add_data(players, data):
                 else:
                     players1.append(participant['championId'])
 
-            for player in players0:
-                entry.append(player)
-            for player in players1:
-                entry.append(player)
+            for p in players0:
+                entry.append(p)
+            for p in players1:
+                entry.append(p)
             if not data.__contains__(matchID):
                 data[matchID] = entry
 
-        with open('valid.csv', 'w', newline='') as csvfile:
-            # CSV-Schreibobjekt erstellen
+        with open('matches.csv', 'w', newline='') as csvfile:
             csv_writer = csv.writer(csvfile)
 
-            # Daten in die CSV-Datei schreiben
             for row in data.values():
                 csv_writer.writerow(row)
                 csv_writer.writerow(invert_data(row))
 
 
-
 def add_challenger_games(data):
-    region = "euw1"
-    league = get_high_league(api_key, region, "challengerleagues")
+    league = get_high_league("challengerleagues")
     players = league['entries']
     add_data(players, data)
 
 
 def add_master_games(data):
-    region = "euw1"
-    league = get_high_league(api_key, region, 'masterleagues')
+    league = get_high_league('masterleagues')
     players = league['entries']
     add_data(players, data)
 
 
 def add_grandmaster_games(data):
-    region = "euw1"
-    league = get_high_league(api_key, region, 'grandmasterleagues')
+    league = get_high_league('grandmasterleagues')
     players = league['entries']
     add_data(players, data)
 
@@ -141,36 +128,15 @@ def invert_data(entry):
     new_entry.extend(entry[1:6])
     return new_entry
 
-# Verwendungsbeispiel
-if __name__ == "__main__":
-    region = "euw1"  # Beispielregion (EU West)
-    regionMatch = "europe"
-    summoner_name = "Bezes"
-    summoner_info = get_summoner_info(api_key, region, summoner_name)
-    if summoner_info:
-        print(f"Beschwörername: {summoner_info['name']}")
-        print(f"Level: {summoner_info['summonerLevel']}")
-        print(f"Beschwörer-ID: {summoner_info['id']}")
-        print(summoner_info)
-    else:
-        print("Summoner nicht gefunden oder ein Fehler ist aufgetreten.")
-        print(summoner_info)
 
+if __name__ == "__main__":
     data = {}
-    #add_challenger_games(data)
-    #add_master_games(data)
+    add_challenger_games(data)
+    add_master_games(data)
     add_grandmaster_games(data)
     with open('matches.csv', 'w', newline='') as csvfile:
-        # CSV-Schreibobjekt erstellen
         csv_writer = csv.writer(csvfile)
 
-        # Daten in die CSV-Datei schreiben
         for row in data.values():
             csv_writer.writerow(row)
             csv_writer.writerow(invert_data(row))
-
-
-
-
-
-
