@@ -2,7 +2,7 @@ import requests
 import csv
 import time
 
-api_key = "RGAPI-566bf67f-e145-454a-ac1e-4c8004debd51"
+api_key = "***"
 off_time = 5
 region = "euw1"
 regionMatch = "europe"
